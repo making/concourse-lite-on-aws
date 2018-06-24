@@ -1,0 +1,6 @@
+.terraform
+terraform.tfvars
+terraform.tfstate*
+concourse-creds.yml
+concourse-state.json
+plan

@@ -1,0 +1,5 @@
+env_id = "changeme"
+access_key = "changeme"
+secret_key = "changeme"
+region = "ap-northeast-1"
+availability_zones = ["ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d"]
