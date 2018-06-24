@@ -4,7 +4,7 @@
 cp terraform.tfvars.sample terraform.tfvars
 ```
 
-Configure your azure environment in `terraform.tfvars`.
+Configure your aws environment in `terraform.tfvars`.
 
 
 ```
