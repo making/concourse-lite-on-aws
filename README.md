@@ -18,7 +18,7 @@ terraform apply plan
 ```
 
 ```
-CONCOURSE_URL=https://$(cat terraform.tfstate | jq -r '.modules[0].outputs.external_ip.value')
+CONCOURSE_URL=https://$(terraform output --json | jq -r .external_ip.value)
 ADMIN_PASSWORD=$(bosh int concourse-creds.yml --path /admin_password)
 
 cat <<EOF
