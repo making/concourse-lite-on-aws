@@ -103,7 +103,6 @@ EOF
   -v internal_cidr=${INTERNAL_CIDR} \
   -v internal_gw=${INTERNAL_GW} \
   -v internal_ip=${INTERNALIP} \
-  -v atc_basic_auth.username=admin \
   --state concourse-state.json \
   $@
   
