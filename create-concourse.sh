@@ -79,21 +79,6 @@ bosh create-env ${CONCOURSE_DEPLOYMENT}/lite/concourse.yml \
   path: /instance_groups/name=concourse/jobs/name=web/properties/add_local_users?
   value:
   - admin:((admin_password))
-- type: remove
-  path: /releases/name=garden-runc
-- type: replace
-  path: /releases/name=bpm?
-  value:
-    name: bpm
-    version: ((bpm_version))
-    sha1: ((bpm_sha1))
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=((bpm_version))
-- type: replace
-  path: /instance_groups/name=concourse/jobs/name=bpm?
-  value:
-    name: bpm
-    release: bpm
-    properties: {}
 - type: replace
   path: /resource_pools/name=vms/stemcell
   value: 
