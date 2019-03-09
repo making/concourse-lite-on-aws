@@ -23,13 +23,33 @@ export CONCOURSE_DEPLOYMENT=./concourse-bosh-deployment
 bosh create-env ${CONCOURSE_DEPLOYMENT}/lite/concourse.yml \
   -o ${CONCOURSE_DEPLOYMENT}/lite/infrastructures/aws.yml \
   -o ${CONCOURSE_DEPLOYMENT}/lite/jumpbox.yml \
-  -o <(sed 's|name=web|name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls.yml) \
-  -o <(sed 's|name=web|name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/privileged-https.yml) \
-  -o <(sed 's|name=web|name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/basic-auth.yml) \
+  -o <(sed 's|/instance_groups/name=web|/instance_groups/name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls.yml) \
+  -o <(sed 's|/instance_groups/name=web|/instance_groups/name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/privileged-https.yml) \
+  -o ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls-vars.yml \
   -o <(cat <<EOF
+# - type: replace
+#   path: /resource_pools/0/cloud_properties/instance_type
+#   value: m4.large
+# - type: replace
+#   path: /resource_pools/0/cloud_properties/spot_bid_price?
+#   value: 0.0340
 - type: replace
   path: /resource_pools/0/cloud_properties/instance_type
   value: t2.medium
+- type: replace
+  path: /resource_pools/0/cloud_properties/spot_bid_price?
+  value: 0.0190
+- type: replace
+  path: /resource_pools/0/cloud_properties/spot_ondemand_fallback?
+  value: true
+- type: replace
+  path: /resource_pools/name=vms/cloud_properties/ephemeral_disk
+  value: 
+    size: 30_000
+    type: standard
+- type: replace
+  path: /disk_pools/name=disks/cloud_properties/type?
+  value: standard
 - type: replace
   path: /networks/-
   value:
@@ -44,18 +64,45 @@ bosh create-env ${CONCOURSE_DEPLOYMENT}/lite/concourse.yml \
   path: /cloud_provider/ssh_tunnel/host
   value: ((public_ip))
 - type: replace
-  path: /instance_groups/name=concourse/jobs/name=atc/properties/external_url
+  path: /instance_groups/name=concourse/jobs/name=web/properties/external_url
   value: https://((public_ip))
 - type: replace
-  path: /instance_groups/name=concourse/jobs/name=atc/properties/basic_auth_password?
-  value: ((admin_password))
+  path: /variables/name=atc_tls/options/alternative_names/0
+  value: ((public_ip))
 - type: replace
   path: /variables/-
   value:
     name: admin_password
     type: password
+- type: replace
+  path: /instance_groups/name=concourse/jobs/name=web/properties/main_team?/auth/local/users
+  value:
+  - admin
+- type: replace
+  path: /instance_groups/name=concourse/jobs/name=web/properties/add_local_users?
+  value:
+  - admin:((admin_password))
+- type: remove
+  path: /releases/name=garden-runc
+- type: replace
+  path: /releases/name=bpm?
+  value:
+    name: bpm
+    version: ((bpm_version))
+    sha1: ((bpm_sha1))
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=((bpm_version))
+- type: replace
+  path: /instance_groups/name=concourse/jobs/name=bpm?
+  value:
+    name: bpm
+    release: bpm
+    properties: {}
+- type: replace
+  path: /resource_pools/name=vms/stemcell
+  value: 
+    url: https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-xenial-go_agent?v=170.38
+    sha1: c42f5de98fc6419f341af1732ff0c1e885a25227
 EOF) \
-  -o ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls-vars.yml \
   -l ${CONCOURSE_DEPLOYMENT}/versions.yml \
   --vars-store concourse-creds.yml \
   -v public_ip=${PUBLIC_IP} \
@@ -66,6 +113,7 @@ EOF) \
   -v default_key_name=${DEFAULT_KEY_NAME} \
   -v default_security_groups="[${DEFAULT_SECURITY_GROUP}]" \
   -v region=${REGION} \
+  -v external_url="https://((public_ip))" \
   --var-file private_key=<(cat <<EOF
 ${PRIVATE_KEY}
 EOF
@@ -75,4 +123,5 @@ EOF
   -v internal_ip=${INTERNALIP} \
   -v atc_basic_auth.username=admin \
   --state concourse-state.json \
+  $@
   
