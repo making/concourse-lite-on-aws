@@ -79,6 +79,13 @@ bosh create-env ${CONCOURSE_DEPLOYMENT}/lite/concourse.yml \
   path: /instance_groups/name=concourse/jobs/name=web/properties/add_local_users?
   value:
   - admin:((admin_password))
+- path: /releases/name=bosh-aws-cpi
+  type: replace
+  value:
+    name: bosh-aws-cpi
+    sha1: 63de6b7dcbf271543e23510dae20c0b436b59ce8
+    url: https://bosh.io/d/github.com/cloudfoundry/bosh-aws-cpi-release?v=79
+    version: 79
 - type: replace
   path: /resource_pools/name=vms/stemcell
   value: 
