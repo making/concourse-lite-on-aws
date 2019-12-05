@@ -12,6 +12,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "concourse_subnet" {
   vpc_id     = "${local.vpc_id}"
   cidr_block = "${cidrsubnet(var.vpc_cidr, 8, 0)}"
+  availability_zone = "${var.availability_zones[0]}"
 
   tags {
     Name = "${var.env_id}-concourse-subnet"
