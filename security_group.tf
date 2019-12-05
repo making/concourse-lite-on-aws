@@ -57,6 +57,25 @@ resource "aws_security_group_rule" "concourse_security_group_rule_tcp_http4443" 
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+resource "aws_security_group_rule" "concourse_security_group_rule_tcp_http8443" {
+  security_group_id = "${aws_security_group.concourse_security_group.id}"
+  type              = "ingress"
+  protocol          = "tcp"
+  from_port         = 8443
+  to_port           = 8443
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+
+resource "aws_security_group_rule" "concourse_security_group_rule_tcp_http8844" {
+  security_group_id = "${aws_security_group.concourse_security_group.id}"
+  type              = "ingress"
+  protocol          = "tcp"
+  from_port         = 8844
+  to_port           = 8844
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_security_group_rule" "concourse_security_group_rule_tcp_prometheus" {
   security_group_id = "${aws_security_group.concourse_security_group.id}"
   type              = "ingress"
