@@ -23,6 +23,8 @@ bosh create-env ${CONCOURSE_DEPLOYMENT}/lite/concourse.yml \
   -o <(sed 's|/instance_groups/name=web|/instance_groups/name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls.yml) \
   -o <(sed 's|/instance_groups/name=web|/instance_groups/name=concourse|g' ${CONCOURSE_DEPLOYMENT}/cluster/operations/privileged-https.yml) \
   -o ${CONCOURSE_DEPLOYMENT}/cluster/operations/tls-vars.yml \
+  -o ops-files/uaa.yml \
+  -o ops-files/credhub.yml \
   -o <(cat <<EOF
 - type: replace
   path: /resource_pools/0/cloud_properties/instance_type

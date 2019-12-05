@@ -1,0 +1,120 @@
+- path: /releases/-
+  release: uaa
+  type: replace
+  value:
+    name: uaa
+    url: "https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=74.12.0"
+    sha1: "5fdd99addec2aebe521a468dba0bcd52e66c86c6"
+    version: 74.12.0
+- path: /instance_groups/name=concourse/jobs/-
+  type: replace
+  value:
+    name: uaa
+    properties:
+      localhost_http_port: 8081
+      encryption:
+        active_key_label: uaa-encryption-key-1
+        encryption_keys:
+        - label: uaa-encryption-key-1
+          passphrase: ((uaa_encryption_key_1))
+      login:
+        saml:
+          activeKeyId: uaa-saml-key-1
+          keys:
+            uaa-saml-key-1:
+              certificate: ((uaa_service_provider_ssl.certificate))
+              key: ((uaa_service_provider_ssl.private_key))
+              passphrase: ""
+      uaa:
+        clients:
+          uaa_admin:
+            authorities: clients.read,clients.write,clients.secret,uaa.admin,scim.read,scim.write,password.write,credhub.read,credhub.write
+            authorized-grant-types: client_credentials
+            override: true
+            scope: ""
+            secret: ((uaa_admin_client_secret))
+        jwt:
+          policy:
+            active_key_id: uaa-jwt-key-1
+            keys:
+              uaa-jwt-key-1:
+                signingKey: ((uaa_jwt_signing_key.private_key))
+        scim:
+          users:
+          - groups:
+            - scim.write
+            - scim.read
+            - credhub.read
+            - credhub.write
+            name: admin
+            password: ((admin_password))
+        sslCertificate: ((uaa_ssl.certificate))
+        sslPrivateKey: ((uaa_ssl.private_key))
+        url: https://((public_ip)):8443
+        zones:
+          internal:
+            hostnames: []
+      uaadb:
+        address: 127.0.0.1
+        databases:
+        - name: uaa
+          tag: uaa
+        db_scheme: postgresql
+        port: 5432
+        roles:
+        - name: uaa
+          password: ((uaa_db_password))
+          tag: admin
+        tls: disabled
+    release: uaa
+
+- type: replace
+  path: /instance_groups/name=concourse/jobs/name=postgres/properties/databases/databases/-
+  value:
+    name: uaa
+- type: replace
+  path: /instance_groups/name=concourse/jobs/name=postgres/properties/databases/roles/-
+  value:
+    name: uaa
+    password: ((uaa_db_password))
+
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_jwt_signing_key
+    type: rsa
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_admin_client_secret
+    type: password
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_db_password
+    type: password
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_encryption_key_1
+    type: password
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_ssl
+    options:
+      alternative_names:
+      - ((public_ip))
+      ca: atc_ca
+      common_name: ((public_ip))
+    type: certificate
+- path: /variables/-
+  type: replace
+  value:
+    name: uaa_service_provider_ssl
+    options:
+      alternative_names:
+      - ((public_ip))
+      ca: atc_ca
+      common_name: ((public_ip))
+    type: certificate

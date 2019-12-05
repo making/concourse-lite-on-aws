@@ -1,0 +1,113 @@
+- path: /releases/-
+  type: replace
+  value:
+    name: "credhub"
+    version: "2.5.9"
+    url: "https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=2.5.9"
+    sha1: "225d508eed11c3f6f4a360118de068d5db9fa427"
+
+- path: /instance_groups/name=concourse/jobs/-
+  type: replace
+  value:
+    name: credhub
+    release: credhub
+    properties:
+      credhub:
+        port: 8844
+        tls: ((atc_tls))
+        authentication:
+          uaa:
+            enabled: true
+            url: https://((public_ip)):8443
+            ca_certs: 
+            - ((atc_tls.ca))
+            verification_key: ((uaa_jwt_signing_key.public_key))
+        authorization:
+          acls:
+            enabled: false
+        data_storage:
+          type: postgres
+          database: credhub
+          host: 127.0.0.1
+          port: 5432
+          username: credhub
+          password: ((credhub_db_password))
+          require_tls: false
+        log_level: info
+        encryption:
+          providers:
+          - name: internal
+            type: internal
+          keys:
+          - provider_name: internal
+            key_properties:
+              encryption_password: ((credhub_encryption_password))
+            active: true
+
+- path: /instance_groups/name=concourse/jobs/name=postgres/properties/databases/databases/-
+  type: replace
+  value:
+    name: credhub
+- path: /instance_groups/name=concourse/jobs/name=postgres/properties/databases/roles/-
+  type: replace
+  value:
+    name: credhub
+    password: ((credhub_db_password))
+
+- path: /instance_groups/name=concourse/jobs/name=uaa/properties/uaa/clients?/concourse_to_credhub
+  type: replace
+  value:
+    id: concourse_to_credhub
+    secret: ((concourse_to_credhub_secret))
+    override: true
+    authorized-grant-types: client_credentials
+    scope: ""
+    authorities: credhub.read,credhub.write
+    access-token-validity: 3600
+
+- path: /instance_groups/name=concourse/jobs/name=uaa/properties/uaa/clients?/credhub_cli
+  type: replace
+  value:
+    id: credhub_cli
+    secret: ""
+    override: true
+    authorized-grant-types: password,refresh_token
+    scope: credhub.read,credhub.write
+    authorities: ""
+    access-token-validity: 3600
+    refresh-token-validity: 604800
+
+- path: /instance_groups/name=concourse/jobs/name=web/properties/credhub?
+  type: replace
+  value:
+    url: https://((public_ip)):8844
+    tls:
+      ca_cert:
+        certificate: ((atc_tls.ca))
+      client_cert: ((atc_tls.certificate))
+      insecure_skip_verify: true
+    client_id: concourse_to_credhub
+    client_secret: ((concourse_to_credhub_secret))
+    path_prefix: /concourse
+
+- path: /instance_groups/name=concourse/jobs/name=uaa/properties/uaa/jwt/revocable?
+  type: replace
+  value: true
+
+- path: /variables?/name=credhub_db_password?
+  type: replace
+  value:
+    name: credhub_db_password
+    type: password
+- path: /variables?/name=credhub_encryption_password?
+  type: replace
+  value:
+    name: credhub_encryption_password
+    type: password
+    options:
+      length: 40
+- path: /variables?/name=concourse_to_credhub_secret?
+  type: replace
+  value:
+    name: concourse_to_credhub_secret
+    type: password
