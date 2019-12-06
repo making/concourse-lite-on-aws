@@ -11,7 +11,6 @@
   value:
     name: uaa
     properties:
-      localhost_http_port: 8081
       encryption:
         active_key_label: uaa-encryption-key-1
         encryption_keys:
@@ -26,6 +25,7 @@
               key: ((uaa_service_provider_ssl.private_key))
               passphrase: ""
       uaa:
+        localhost_http_port: 8081
         clients:
           uaa_admin:
             authorities: clients.read,clients.write,clients.secret,uaa.admin,scim.read,scim.write,password.write,credhub.read,credhub.write
